@@ -18,7 +18,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds],
 });
 
-// Slash command
+// Slash command setup
 const commands = [
   new SlashCommandBuilder()
     .setName("tviews")
@@ -33,7 +33,7 @@ const commands = [
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
 
-// Register commands
+// Register slash commands
 (async () => {
   try {
     console.log("Registering slash commands...");
@@ -56,7 +56,7 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   if (interaction.commandName === "tviews") {
-    // Channel restriction
+    // Restrict command to specific channel
     if (interaction.channelId !== ALLOWED_CHANNEL_ID) {
       return interaction.reply({
         content:
@@ -67,7 +67,7 @@ client.on("interactionCreate", async (interaction) => {
 
     const link = interaction.options.getString("link");
 
-    // Basic validation
+    // Basic TikTok URL validation
     if (
       !link.includes("tiktok.com") ||
       (!link.startsWith("https://") &&
@@ -82,6 +82,7 @@ client.on("interactionCreate", async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
 
     try {
+      // Place order API request
       const response = await fetch(
         "https://eshopsmm.online/api/v2",
         {
@@ -95,15 +96,17 @@ client.on("interactionCreate", async (interaction) => {
             action: "add",
             service: "666",
             link: link,
-            quantity: "101",
+            quantity: "100",
           }),
         }
       );
 
       const data = await response.json();
 
+      // SUCCESS
       if (data.order) {
-        return interaction.editReply({
+        // Reply to user
+        await interaction.editReply({
           content: `✅ Order placed successfully!
 
 🆔 Order ID: ${data.order}
@@ -111,7 +114,17 @@ client.on("interactionCreate", async (interaction) => {
 ⚠️ Instruction:
 Do not place the same order for the same video before this order gets completed.`,
         });
+
+        // Send public message in channel
+        await interaction.channel.send({
+          content: `📢 New TikTok Views Order
+
+👤 User: <@${interaction.user.id}>
+🔗 Link: ${link}
+📦 Amount: 100`,
+        });
       } else {
+        // API returned error
         return interaction.editReply({
           content: `❌ Failed to place order.
 
