@@ -93,7 +93,7 @@ client.on("interactionCreate", async (interaction) => {
           body: new URLSearchParams({
             key: API_KEY,
             action: "add",
-            service: "YOUR_SERVICE_ID",
+            service: "666",
             link: link,
             amount: "100",
           }),
