@@ -84,7 +84,7 @@ client.on("interactionCreate", async (interaction) => {
     try {
       // Place order API request
       const response = await fetch(
-        "https://eshopsmm.online/api/v2",
+        "https://cheapestsmmpanels.com/api/v2",
         {
           method: "POST",
           headers: {
@@ -94,7 +94,7 @@ client.on("interactionCreate", async (interaction) => {
           body: new URLSearchParams({
             key: API_KEY,
             action: "add",
-            service: "666",
+            service: "3066",
             link: link,
             quantity: "100",
           }),
