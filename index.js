@@ -15,7 +15,12 @@ const API_KEY = process.env.SMM_API_KEY;
 const ALLOWED_CHANNEL_ID = "1453664649521401907";
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent,
+  GatewayIntentBits.DirectMessages,
+  ],
 });
 
 // Slash command setup
@@ -144,4 +149,5 @@ ${JSON.stringify(data, null, 2)}
   }
 });
 
+require("./commands/orderapprove")(client);
 client.login(TOKEN);
