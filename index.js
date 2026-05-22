@@ -95,7 +95,7 @@ client.on("interactionCreate", async (interaction) => {
             action: "add",
             service: "666",
             link: link,
-            amount: "101",
+            quantity: "101",
           }),
         }
       );
