@@ -120,7 +120,7 @@ Do not place the same order for the same video before this order gets completed.
           content: `📢 New TikTok Views Order
 
 👤 User: <@${interaction.user.id}>
-🔗 Link: ${link}
+🔗 Link: <${link}>
 📦 Amount: 100`,
         });
       } else {
