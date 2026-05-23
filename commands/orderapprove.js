@@ -9,14 +9,14 @@ module.exports = (client) => {
     if (message.author.id !== OWNER_ID) return;
 
     // Command check
-    if (!message.content.startsWith(".orderapprove")) return;
+    if (!message.content.startsWith(".dm")) return;
 
     const args = message.content.split(" ");
 
     // Validation
     if (args.length < 3) {
       return message.reply(
-        "Usage: .orderapprove <user_id> <message>"
+        "Usage: .dm <user_id> <message>"
       );
     }
 
@@ -28,9 +28,7 @@ module.exports = (client) => {
       const user = await client.users.fetch(userId);
 
       // Send DM
-      await user.send(
-        `✅ Your order has been approved!\n\n${customMessage}`
-      );
+      await user.send(customMessage);
 
       // Confirm to owner
       await message.reply("✅ DM sent successfully.");
