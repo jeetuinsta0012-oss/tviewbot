@@ -1,95 +1,182 @@
 const {
   Client,
   GatewayIntentBits,
-  SlashCommandBuilder,
-  Routes,
-  REST,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  Events,
+  ChannelType,
 } = require("discord.js");
 
 require("dotenv").config();
 
 const TOKEN = process.env.DISCORD_TOKEN;
-const CLIENT_ID = process.env.CLIENT_ID;
 const API_KEY = process.env.SMM_API_KEY;
 
-const ALLOWED_CHANNEL_ID = "1453664649521401907";
+const OWNER_ID = "1487485450833756235";
+
+// CHANNEL IDS
+const LOG_CHANNEL_ID = "1502237695815188632";
+const PREMIUM_CHANNEL_ID = "1502987716462252143";
+
+// FREE SERVICE SETTINGS
+const SERVICE_ID = "668";
+const QUANTITY = "100";
+
+// 1 HOUR COOLDOWN
+const cooldowns = new Map();
 
 const client = new Client({
   intents: [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
-  GatewayIntentBits.MessageContent,
-  GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
   ],
 });
-
-// Slash command setup
-const commands = [
-  new SlashCommandBuilder()
-    .setName("tviews")
-    .setDescription("Place TikTok views order")
-    .addStringOption((option) =>
-      option
-        .setName("link")
-        .setDescription("Enter TikTok video link")
-        .setRequired(true)
-    ),
-].map((cmd) => cmd.toJSON());
-
-const rest = new REST({ version: "10" }).setToken(TOKEN);
-
-// Register slash commands
-(async () => {
-  try {
-    console.log("Registering slash commands...");
-
-    await rest.put(Routes.applicationCommands(CLIENT_ID), {
-      body: commands,
-    });
-
-    console.log("Slash commands registered.");
-  } catch (err) {
-    console.error(err);
-  }
-})();
 
 client.once("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+// MESSAGE COMMANDS
+client.on("messageCreate", async (message) => {
+  if (message.author.bot) return;
 
-  if (interaction.commandName === "tviews") {
-    // Restrict command to specific channel
-    if (interaction.channelId !== ALLOWED_CHANNEL_ID) {
+  // OWNER ONLY .setup COMMAND
+  if (message.content === ".setup") {
+    if (message.author.id !== OWNER_ID) {
+      return message.reply(
+        "❌ You are not allowed to use this command."
+      );
+    }
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("free_service")
+        .setLabel("Free")
+        .setStyle(ButtonStyle.Success),
+
+      new ButtonBuilder()
+        .setLabel("Prem")
+        .setStyle(ButtonStyle.Link)
+        .setURL(
+          `https://discord.com/channels/${message.guild.id}/${PREMIUM_CHANNEL_ID}`
+        )
+    );
+
+    await message.channel.send({
+      embeds: [
+        {
+          title: "Payout",
+          description:
+            "To create a ticket use the buttons below.",
+          color: 0x57f287,
+          footer: {
+            text: "Free TikTok Views Service",
+          },
+        },
+      ],
+      components: [row],
+    });
+  }
+});
+
+// INTERACTIONS
+client.on(Events.InteractionCreate, async (interaction) => {
+  // FREE BUTTON
+  if (
+    interaction.isButton() &&
+    interaction.customId === "free_service"
+  ) {
+    // COOLDOWN CHECK
+    const userCooldown = cooldowns.get(
+      interaction.user.id
+    );
+
+    if (userCooldown && Date.now() < userCooldown) {
+      const remaining =
+        Math.ceil(
+          (userCooldown - Date.now()) / 60000
+        );
+
       return interaction.reply({
-        content:
-          "❌ You can only use this command in the allowed channel.",
+        content: `❌ You already used the free service.\nTry again in ${remaining} minute(s).`,
         ephemeral: true,
       });
     }
 
-    const link = interaction.options.getString("link");
+    // MODAL
+    const modal = new ModalBuilder()
+      .setCustomId("free_modal")
+      .setTitle("Free TikTok Views");
 
-    // Basic TikTok URL validation
+    const videoLink =
+      new TextInputBuilder()
+        .setCustomId("video_link")
+        .setLabel("TikTok Video Link")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setPlaceholder(
+          "https://www.tiktok.com/..."
+        );
+
+    const amount =
+      new TextInputBuilder()
+        .setCustomId("amount")
+        .setLabel("Amount")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setValue("100");
+
+    const row1 =
+      new ActionRowBuilder().addComponents(
+        videoLink
+      );
+
+    const row2 =
+      new ActionRowBuilder().addComponents(
+        amount
+      );
+
+    modal.addComponents(row1, row2);
+
+    await interaction.showModal(modal);
+  }
+
+  // MODAL SUBMIT
+  if (
+    interaction.isModalSubmit() &&
+    interaction.customId === "free_modal"
+  ) {
+    const link =
+      interaction.fields.getTextInputValue(
+        "video_link"
+      );
+
+    // VALIDATION
     if (
       !link.includes("tiktok.com") ||
       (!link.startsWith("https://") &&
         !link.startsWith("http://"))
     ) {
       return interaction.reply({
-        content: "❌ Please provide a valid TikTok video link.",
+        content:
+          "❌ Please provide a valid TikTok video link.",
         ephemeral: true,
       });
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({
+      ephemeral: true,
+    });
 
     try {
-      // Place order API request
+      // PLACE ORDER
       const response = await fetch(
-        "https://cheapestsmmpanels.com/api/v2",
+        "https://eshopsmm.online/api/v2",
         {
           method: "POST",
           headers: {
@@ -99,9 +186,9 @@ client.on("interactionCreate", async (interaction) => {
           body: new URLSearchParams({
             key: API_KEY,
             action: "add",
-            service: "3066",
+            service: SERVICE_ID,
             link: link,
-            quantity: "100",
+            quantity: QUANTITY,
           }),
         }
       );
@@ -110,26 +197,59 @@ client.on("interactionCreate", async (interaction) => {
 
       // SUCCESS
       if (data.order) {
-        // Reply to user
+        // SET COOLDOWN
+        cooldowns.set(
+          interaction.user.id,
+          Date.now() + 60 * 60 * 1000
+        );
+
+        // USER REPLY
         await interaction.editReply({
           content: `✅ Order placed successfully!
 
 🆔 Order ID: ${data.order}
+📦 Amount: 100
 
-⚠️ Instruction:
-Do not place the same order for the same video before this order gets completed.`,
+⚠️ Cooldown: 1 Hour`,
         });
 
-        // Send public message in channel
-        await interaction.channel.send({
-          content: `📢 New TikTok Views Order
+        // LOG CHANNEL
+        const logChannel =
+          await client.channels.fetch(
+            LOG_CHANNEL_ID
+          );
 
-👤 User: <@${interaction.user.id}>
-🔗 Link: <${link}>
-📦 Amount: 100`,
-        });
+        if (logChannel) {
+          await logChannel.send({
+            embeds: [
+              {
+                title:
+                  "📢 New Free TikTok Order",
+                color: 0x57f287,
+                fields: [
+                  {
+                    name: "User",
+                    value: `<@${interaction.user.id}>`,
+                  },
+                  {
+                    name: "Link",
+                    value: link,
+                  },
+                  {
+                    name: "Amount",
+                    value: "100",
+                  },
+                  {
+                    name: "Order ID",
+                    value: String(data.order),
+                  },
+                ],
+                timestamp: new Date(),
+              },
+            ],
+          });
+        }
       } else {
-        // API returned error
         return interaction.editReply({
           content: `❌ Failed to place order.
 
@@ -150,4 +270,5 @@ ${JSON.stringify(data, null, 2)}
 });
 
 require("./commands/orderapprove")(client);
+
 client.login(TOKEN);
