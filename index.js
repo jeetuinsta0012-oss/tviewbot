@@ -270,5 +270,6 @@ ${JSON.stringify(data, null, 2)}
 });
 
 require("./commands/orderapprove")(client);
+require("./commands/views")(client);
 
 client.login(TOKEN);
