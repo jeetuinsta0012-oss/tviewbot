@@ -56,11 +56,11 @@ client.on("messageCreate", async (message) => {
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId("free_service")
-        .setLabel("Free")
+        .setLabel("100 Free Views")
         .setStyle(ButtonStyle.Success),
 
       new ButtonBuilder()
-        .setLabel("Prem")
+        .setLabel("Premium Services")
         .setStyle(ButtonStyle.Link)
         .setURL(
           `https://discord.com/channels/${message.guild.id}/${PREMIUM_CHANNEL_ID}`
@@ -70,9 +70,9 @@ client.on("messageCreate", async (message) => {
     await message.channel.send({
       embeds: [
         {
-          title: "Payout",
+          title: "Free Viewer",
           description:
-            "To create a ticket use the buttons below.",
+            "Click the buttons below to get services",
           color: 0x57f287,
           footer: {
             text: "Free TikTok Views Service",
