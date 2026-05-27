@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 module.exports = (client) => {
   const OWNER_ID = "1487485450833756235";
   const API_KEY = process.env.SMM_API_KEY;
