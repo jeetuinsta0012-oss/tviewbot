@@ -17,14 +17,14 @@ module.exports = (client) => {
 
     const args = message.content.trim().split(/\s+/);
 
-    // .views <link> <amount>
+    // .views <link> <quantity>
     const link = args[1];
-    const amount = parseInt(args[2]);
+    const quantity = parseInt(args[2]);
 
     // VALIDATION
-    if (!link || !amount) {
+    if (!link || !quantity) {
       return message.reply(
-        "❌ Usage:\n.views <tiktok_link> <amount>"
+        "❌ Usage:\n.views <tiktok_link> <quantity>"
       );
     }
 
@@ -39,10 +39,10 @@ module.exports = (client) => {
       );
     }
 
-    // VALIDATE AMOUNT
-    if (isNaN(amount) || amount <= 0) {
+    // VALIDATE QUANTITY
+    if (isNaN(quantity) || quantity <= 0) {
       return message.reply(
-        "❌ Amount must be a valid number."
+        "❌ Quantity must be a valid number."
       );
     }
 
@@ -63,7 +63,7 @@ module.exports = (client) => {
       params.append("action", "add");
       params.append("service", SERVICE_ID);
       params.append("link", link);
-      params.append("quantity", amount);
+      params.append("quantity", quantity);
 
       const response = await fetch(
         "https://eshopsmm.online/api/v2",
@@ -95,7 +95,7 @@ module.exports = (client) => {
           `✅ Order placed successfully!
 
 🆔 Order ID: ${data.order}
-📦 Amount: ${amount}
+📦 Quantity: ${quantity}
 🔗 Link: ${link}`
         );
       }
